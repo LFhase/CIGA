@@ -26,7 +26,7 @@ Despite recent success in using the invariance principle for out-of-distribution
     - Graph structure;
     - Both;
 
-2. Each distribution shift can spuriously correlate with the label in **<ins>different modes</ins>**. We divide the modes into FIIF and PIIF, according to whether the latent causal feature $C$ fully determines the label $Y$, i.e., or $(S,E)\perp\!\!\!\!\perp Y|C$:
+2. Each distribution shift can spuriously correlate with the label in **<ins>different modes</ins>**. We divide the modes into FIIF and PIIF, according to whether the latent causal feature $C$ fully determines the label $Y$, i.e., or $(S,E)\perp\mkern-9.5mu\perp Y|C$:
     - Fully Informative Invariant Features (FIIF): $Y\leftarrow C\rightarrow S\leftarrow E$;
     - Partially Informative Invariant Features (PIIF): $C\rightarrow Y\leftarrow S \leftarrow E$;
     - Mixed Informative Invariant Features (MIIF): mixed with both FIIF and PIIF;
