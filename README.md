@@ -34,7 +34,7 @@ Despite recent success in using the invariance principle for out-of-distribution
 3. **<ins>Domain or environment partitions</ins>**, which are often required by OOD methods on Euclidean data, can be highly expensive to obtain for graphs.
 
 
-<p align="center"><img src="./data/arch.png" width=85% height=85%></p>
+<p align="center"><img src="./data/arch.png" width=50% height=50%></p>
 <p align="center"><em>Figure 1.</em> The architecture of CIGA.</p>
 
 This work addresses the above challenges by generalizing the causal invariance principle to graphs, and instantiating it as CIGA. Shown as in Figure 1, CIGA is powered by an information-theoretic objective that extracts the subgraphs which maximally preserve the invariant intra-class information.
