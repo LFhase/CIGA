@@ -21,7 +21,7 @@ TODO items:
 ## Introduction
 Despite recent success in using the invariance principle for out-of-distribution (OOD) generalization on Euclidean data (e.g., images), studies on graph data are still limited. Different from images, the complex nature of graphs poses unique challenges to adopting the invariance principle:
 
-1. Distribution shiftson graphs can appear in **<ins>a variety of forms</ins>**:
+1. Distribution shifts on graphs can appear in **<ins>a variety of forms</ins>**:
     - Node attributes;
     - Graph structure;
     - Both;
