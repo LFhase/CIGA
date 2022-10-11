@@ -15,7 +15,8 @@
 This repo contains the sample code for reproducing the results of NeurIPS 2022 paper: *[Learning Causally Invariant Representations for Out-of-Distribution Generalization on Graphs](https://arxiv.org/abs/2202.05441)* 😆😆😆.
 
 TODO items:
-- [ ] Camera ready version of the paper will be released soon!
+
+- [x] Camera ready version of the paper is released on Oct. 12 ([link](https://arxiv.org/abs/2202.05441))!
 - [ ] Full code and instructions will be released soon!
 - [ ] Benchmarking CIGA on [GOOD](https://github.com/divelab/GOOD) benchamrk, which is recently accepted by NeurIPS 2022 Datasets and Benchmarks Track!
 
