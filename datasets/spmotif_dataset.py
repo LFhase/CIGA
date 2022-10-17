@@ -107,17 +107,10 @@ class SPMotif(InMemoryDataset):
         torch.save(self.collate(data_list), self.processed_paths[idx])
 
     def add_self_loops(self):
-        # print(self.data.edge_index)
         self.remove_self_loops()
-        print(torch.unique(self.data.edge_index).size())
-        # print(self.data.edge_index.size())
-        # print(self.data.edge_attr.size())
+        # print(torch.unique(self.data.edge_index).size())
         self.data.edge_index, self.data.edge_attr = add_self_loops(self.data.edge_index, self.data.edge_attr.squeeze(1))
-        # print(self.data.edge_index.size())
-        # print(self.data.edge_attr.size())
-        # print(self.data.edge_index[:,self.data.edge_index[1]==13014])
         self.data.edge_attr = self.data.edge_attr.unsqueeze(1)
-        # exit()
 
     def remove_self_loops(self):
         self.data.edge_index, self.data.edge_attr = remove_self_loops(self.data.edge_index, self.data.edge_attr)

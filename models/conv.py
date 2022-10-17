@@ -5,6 +5,9 @@ from torch_geometric.nn import global_mean_pool, global_add_pool
 from torch_geometric.utils import degree
 from ogb.graphproppred.mol_encoder import AtomEncoder, BondEncoder
 
+"""
+Modified from OGB PyG implementation
+"""
 
 ### GIN convolution along the graph structure
 class GINConv(MessagePassing):

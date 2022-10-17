@@ -19,14 +19,8 @@ class Logger:
             filename: str = None):
         logger = logging.getLogger(filename)
         logger.setLevel(level)
-
         fmt = logging.Formatter(fmt)
-
-        # stream handler
-        sh = logging.StreamHandler(sys.stdout)
-        sh.setLevel(level)
-        sh.setFormatter(fmt)
-        logger.addHandler(sh)
+        
         if os.path.exists(filename):
             os.remove(filename)
         if filename:
@@ -35,7 +29,12 @@ class Logger:
             fh.setLevel(level)
             fh.setFormatter(fmt)
             logger.addHandler(fh)
-
+        else:
+            # stream handler
+            sh = logging.StreamHandler(sys.stdout)
+            sh.setLevel(level)
+            sh.setFormatter(fmt)
+            logger.addHandler(sh)
         logger.setLevel(level)
         Logger.logger = logger
         return logger

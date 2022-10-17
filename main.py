@@ -135,32 +135,35 @@ def main():
     parser.add_argument('--irm_opt', default='irm', type=str, help='algorithms to use')
    
 
-    # Graph Invariant Learning
-    parser.add_argument('--erm', action='store_true')  # whether to use normal GNN
+    # Invariant Graph Learning config
+    parser.add_argument('--erm', action='store_true')  # whether to use normal GNN arch
     parser.add_argument('--ginv_opt', default='ginv', type=str)  # which interpretable GNN archs to use
     parser.add_argument('--dir', default=0, type=float)
     parser.add_argument('--contrast_t', default=1.0, type=float, help='temperature prameter in contrast loss')
-    parser.add_argument('--contrast', default=0, type=float)
-    parser.add_argument('--not_norm', action='store_true')
+    # strength of the contrastive reg, \alpha in the paper
+    parser.add_argument('--contrast', default=0, type=float)    
+    parser.add_argument('--not_norm', action='store_true')  # whether not using normalization for the constrast loss
     parser.add_argument('-c_sam', '--contrast_sampling', default='mul', type=str)
-    # contrasting summary from predictor or featurizer
+    # contrasting summary from the classifier or featurizer
     # rep:  classifier rep
     # feat: featurizer rep
     # conv: featurizer rep + 1L GNNConv
     parser.add_argument('-c_rep', '--contrast_rep', default='rep', type=str)
     # pooling method for the last two options in c_rep
     parser.add_argument('-c_pool', '--contrast_pooling', default='add', type=str)
+
+
     # spurious rep for maximizing I(G_S;Y)
     # rep:  classifier rep
     # conv: featurizer rep + 1L GNNConv
     parser.add_argument('-s_rep', '--spurious_rep', default='rep', type=str)
-    parser.add_argument('--spu_coe', default=0, type=float)
+    # strength of the hinge reg, \beta in the paper
+    parser.add_argument('--spu_coe', default=0, type=float) 
 
     # misc
     parser.add_argument('--no_tqdm', action='store_true')
     parser.add_argument('--commit', default='', type=str, help='experiment name')
-    parser.add_argument('--config', default='', type=str, help='yaml config path')
-    parser.add_argument('--save_model', action='store_true')  #save pred to ./pred if not empty
+    parser.add_argument('--save_model', action='store_true')  # save pred to ./pred if not empty
 
     args = parser.parse_args()
     erm_model = None  # used to obtain pesudo labels for CNC sampling in contrastive loss
@@ -322,8 +325,7 @@ def main():
     args_print(args, logger)
     logger.info(f"Using criterion {criterion}")
 
-    logger.info(
-        f"# Train: {len(train_loader.dataset)}  #Val: {len(valid_loader.dataset)} #Test: {len(test_loader.dataset)} ")
+    logger.info(f"# Train: {len(train_loader.dataset)}  #Val: {len(valid_loader.dataset)} #Test: {len(test_loader.dataset)} ")
     best_weights = None
     for seed in args.seed:
         set_seed(seed)
@@ -480,8 +482,7 @@ def main():
                                                       norm=F.normalize if not args.not_norm else None,
                                                       contrast_t=args.contrast_t,
                                                       sampling=args.contrast_sampling,
-                                                      y_pred=erm_y_pred,
-                                                      ratio=args.r)
+                                                      y_pred=erm_y_pred)
                     all_losses['contrast'] = (all_losses.get('contrast', 0) * (n_bw - 1) + contrast_loss.item()) / n_bw
                     all_contrast_loss += contrast_loss.item()
 
@@ -566,7 +567,7 @@ def main():
                     last_test_acc, last_train_acc, last_val_acc))
                 break
             logger.info("Epoch [{:3d}/{:d}]  all_losses:{}  \n"
-                        "Test_ACC{:.3f}  Train_ACC:{:.3f} Val_ACC:{:.3f}".format(
+                        "Test_ACC:{:.3f}  Train_ACC:{:.3f} Val_ACC:{:.3f}".format(
                             epoch, args.epoch, all_losses, test_acc, train_acc, val_acc))
 
         all_info['test_acc'].append(last_test_acc)

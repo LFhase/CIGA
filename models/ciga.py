@@ -234,27 +234,26 @@ class CIGA(nn.Module):
         self.log_sigmas = nn.Parameter(torch.zeros(sigma_len))
         self.log_sigmas.requires_grad_(True)
 
-        self.featurizer_h = None  #nn.Parameter(torch.zeros(1))
-        self.featurizer_batch = None
 
-    def forward(self, batch, return_data="pred", return_conf=False, debug=False):
+
+    def forward(self, batch, return_data="pred", return_spu=False, debug=False):
+        # obtain the graph embeddings from the featurizer GNN encoder
         h = self.gnn_encoder(batch)
-        self.featurizer_h = h  #Variable(h)
-        self.featurizer_batch = batch.batch
-        # print(h.size())
         device = h.device
+        # seperate the input graphs into \hat{G_c} and \hat{G_s}
+        # using edge-level attetion
         row, col = batch.edge_index
         if batch.edge_attr == None:
-            batch.edge_attr = torch.ones(row.size(0)).to(batch.edge_index.device)
+            batch.edge_attr = torch.ones(row.size(0)).to(device)
         edge_rep = torch.cat([h[row], h[col]], dim=-1)
         pred_edge_weight = self.edge_att(edge_rep).view(-1)
 
         causal_edge_index = torch.LongTensor([[], []]).to(device)
         causal_edge_weight = torch.tensor([]).to(device)
         causal_edge_attr = torch.tensor([]).to(device)
-        conf_edge_index = torch.LongTensor([[], []]).to(device)
-        conf_edge_weight = torch.tensor([]).to(device)
-        conf_edge_attr = torch.tensor([]).to(device)
+        spu_edge_index = torch.LongTensor([[], []]).to(device)
+        spu_edge_weight = torch.tensor([]).to(device)
+        spu_edge_attr = torch.tensor([]).to(device)
 
         edge_indices, _, _, num_edges, cum_edges = split_batch(batch)
         for edge_index, N, C in zip(edge_indices, num_edges, cum_edges):
@@ -270,42 +269,44 @@ class CIGA(nn.Module):
                 print(idx_reserve)
                 print(idx_drop)
             causal_edge_index = torch.cat([causal_edge_index, edge_index[:, idx_reserve]], dim=1)
-            conf_edge_index = torch.cat([conf_edge_index, edge_index[:, idx_drop]], dim=1)
+            spu_edge_index = torch.cat([spu_edge_index, edge_index[:, idx_drop]], dim=1)
 
             causal_edge_weight = torch.cat([causal_edge_weight, single_mask[idx_reserve]])
-            conf_edge_weight = torch.cat([conf_edge_weight, -1 * single_mask[idx_drop]])
+            spu_edge_weight = torch.cat([spu_edge_weight, -1 * single_mask[idx_drop]])
 
             causal_edge_attr = torch.cat([causal_edge_attr, edge_attr[idx_reserve]])
-            conf_edge_attr = torch.cat([conf_edge_attr, edge_attr[idx_drop]])
+            spu_edge_attr = torch.cat([spu_edge_attr, edge_attr[idx_drop]])
 
         if self.c_in.lower() == "raw":
             causal_x, causal_edge_index, causal_batch, _ = relabel(batch.x, causal_edge_index, batch.batch)
-            conf_x, conf_edge_index, conf_batch, _ = relabel(batch.x, conf_edge_index, batch.batch)
+            spu_x, spu_edge_index, spu_batch, _ = relabel(batch.x, spu_edge_index, batch.batch)
         else:
             causal_x, causal_edge_index, causal_batch, _ = relabel(h, causal_edge_index, batch.batch)
-            conf_x, conf_edge_index, conf_batch, _ = relabel(h, conf_edge_index, batch.batch)
+            spu_x, spu_edge_index, spu_batch, _ = relabel(h, spu_edge_index, batch.batch)
 
-
+        # obtain \hat{G_c}
         causal_graph = DataBatch.Batch(batch=causal_batch,
                                        edge_index=causal_edge_index,
                                        x=causal_x,
                                        edge_attr=causal_edge_attr)
         set_masks(causal_edge_weight, self.classifier)
+        # obtain predictions with the classifier based on \hat{G_c}
         causal_pred, causal_rep = self.classifier(causal_graph, get_rep=True)
         clear_masks(self.classifier)
 
-        if return_conf:
-            conf_graph = DataBatch.Batch(batch=conf_batch,
-                                         edge_index=conf_edge_index,
-                                         x=conf_x,
-                                         edge_attr=conf_edge_attr)
-            set_masks(conf_edge_weight, self.classifier)
+        # whether to return the \hat{G_s} for further use
+        if return_spu:
+            spu_graph = DataBatch.Batch(batch=spu_batch,
+                                         edge_index=spu_edge_index,
+                                         x=spu_x,
+                                         edge_attr=spu_edge_attr)
+            set_masks(spu_edge_weight, self.classifier)
             if self.s_rep.lower() == "conv":
-                conf_pred, conf_rep = self.classifier.get_conf_pred_forward(conf_graph, get_rep=True)
+                spu_pred, spu_rep = self.classifier.get_spu_pred_forward(spu_graph, get_rep=True)
             else:
-                conf_pred, conf_rep = self.classifier.get_conf_pred(conf_graph, get_rep=True)
+                spu_pred, spu_rep = self.classifier.get_spu_pred(spu_graph, get_rep=True)
             clear_masks(self.classifier)
-            causal_pred = (causal_pred, conf_pred)
+            causal_pred = (causal_pred, spu_pred)
 
         if return_data.lower() == "pred":
             return causal_pred
@@ -325,20 +326,20 @@ class CIGA(nn.Module):
             return causal_pred, casual_rep_from_feat
         else:
             return (causal_x, causal_edge_index, causal_edge_attr, causal_edge_weight, causal_batch),\
-                (conf_x, conf_edge_index, conf_edge_attr, conf_edge_weight, conf_batch),\
+                (spu_x, spu_edge_index, spu_edge_attr, spu_edge_weight, spu_batch),\
                 pred_edge_weight
 
     def get_dir_loss(self, batched_data, labels, criterion, is_labeled=None, return_data="pred"):
         (causal_x, causal_edge_index, causal_edge_attr, causal_edge_weight, causal_batch),\
-                (conf_x, conf_edge_index, conf_edge_attr, conf_edge_weight, conf_batch),\
+                (spu_x, spu_edge_index, spu_edge_attr, spu_edge_weight, spu_batch),\
                 pred_edge_weight = self.forward(batched_data,return_data="")
         if is_labeled == None:
             is_labeled = torch.ones(labels.size()).to(labels.device)
 
-        def get_comb_pred(predictor, causal_graph_x, conf_graph_x):
+        def get_comb_pred(predictor, causal_graph_x, spu_graph_x):
             causal_pred = predictor.graph_pred_linear(causal_graph_x)
-            conf_pred = predictor.conf_mlp(conf_graph_x).detach()
-            return torch.sigmoid(conf_pred) * causal_pred
+            spu_pred = predictor.spu_mlp(spu_graph_x).detach()
+            return torch.sigmoid(spu_pred) * causal_pred
 
         causal_graph = DataBatch.Batch(batch=causal_batch,
                                        edge_index=causal_edge_index,
@@ -348,21 +349,21 @@ class CIGA(nn.Module):
         causal_pred, causal_rep = self.classifier(causal_graph, get_rep=True)
         clear_masks(self.classifier)
 
-        conf_graph = DataBatch.Batch(batch=conf_batch, edge_index=conf_edge_index, x=conf_x, edge_attr=conf_edge_attr)
-        set_masks(conf_edge_weight, self.classifier)
-        conf_pred, conf_rep = self.classifier.get_conf_pred(conf_graph, get_rep=True)
+        spu_graph = DataBatch.Batch(batch=spu_batch, edge_index=spu_edge_index, x=spu_x, edge_attr=spu_edge_attr)
+        set_masks(spu_edge_weight, self.classifier)
+        spu_pred, spu_rep = self.classifier.get_spu_pred(spu_graph, get_rep=True)
         clear_masks(self.classifier)
 
         env_loss = torch.tensor([]).to(causal_rep.device)
-        for conf in conf_rep:
+        for conf in spu_rep:
             rep_out = get_comb_pred(self.classifier, causal_rep, conf)
             env_loss = torch.cat([env_loss, criterion(rep_out[is_labeled], labels[is_labeled]).unsqueeze(0)])
 
-        dir_loss = torch.var(env_loss * conf_rep.size(0)) + env_loss.mean()
+        dir_loss = torch.var(env_loss * spu_rep.size(0)) + env_loss.mean()
 
         if return_data.lower() == "pred":
-            return get_comb_pred(causal_rep, conf_rep)
+            return get_comb_pred(causal_rep, spu_rep)
         elif return_data.lower() == "rep":
-            return dir_loss, causal_pred, conf_pred, causal_rep
+            return dir_loss, causal_pred, spu_pred, causal_rep
         else:
             return dir_loss, causal_pred

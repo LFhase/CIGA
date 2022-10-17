@@ -93,44 +93,44 @@ class GNN(torch.nn.Module):
             self.graph_pred_linear = torch.nn.Sequential(nn.Linear(emb_dim, 2 * emb_dim), nn.ReLU(),
                                                          nn.Linear(2 * emb_dim, self.num_class))
 
-            self.conf_mlp = torch.nn.Sequential(nn.Linear(emb_dim, 2 * emb_dim), nn.ReLU(),
+            self.spu_mlp = torch.nn.Sequential(nn.Linear(emb_dim, 2 * emb_dim), nn.ReLU(),
                                                 nn.Linear(2 * emb_dim, self.num_class))
             self.cq = nn.Linear(self.num_class, self.num_class)
-            self.conf_fw = torch.nn.Sequential(self.conf_mlp, self.cq)
+            self.spu_fw = torch.nn.Sequential(self.spu_mlp, self.cq)
         elif pred_head == "conf":
             self.graph_pred_linear = torch.nn.Sequential(nn.Linear(emb_dim, 2 * emb_dim), nn.ReLU(),
                                                          nn.Linear(2 * emb_dim, self.num_class))
-            self.conf_gcn = GNN_node(num_layer=1,
+            self.spu_gcn = GNN_node(num_layer=1,
                                      emb_dim=emb_dim,
                                      input_dim=emb_dim,
                                      JK=JK,
                                      drop_ratio=drop_ratio,
                                      residual=residual,
                                      gnn_type=gnn_type)
-            self.conf_mlp = torch.nn.Sequential(nn.Linear(emb_dim, 2 * emb_dim), nn.ReLU(),
+            self.spu_mlp = torch.nn.Sequential(nn.Linear(emb_dim, 2 * emb_dim), nn.ReLU(),
                                                 nn.Linear(2 * emb_dim, self.num_class))
             self.cq = nn.Linear(self.num_class, self.num_class)
-            self.conf_fw = torch.nn.Sequential(self.conf_mlp, self.cq)
+            self.spu_fw = torch.nn.Sequential(self.spu_mlp, self.cq)
 
-    def get_conf_pred_forward(self, batched_data, get_rep=False):
+    def get_spu_pred_forward(self, batched_data, get_rep=False):
         # if using DIR, won't consider gradients for encoder
         # h_node = self.gnn_node(batched_data)
         # h_graph = self.pool(h_node, batched_data.batch).detach()
-        h_node = self.conf_gcn(batched_data)
+        h_node = self.spu_gcn(batched_data)
         h_graph = self.pool(h_node, batched_data.batch)
 
         if get_rep:
-            return self.conf_fw(h_graph), h_graph
-        return self.conf_fw(h_graph)
+            return self.spu_fw(h_graph), h_graph
+        return self.spu_fw(h_graph)
 
-    def get_conf_pred(self, batched_data, get_rep=False):
+    def get_spu_pred(self, batched_data, get_rep=False):
         # if using DIR, won't consider gradients for encoder
         h_node = self.gnn_node(batched_data)
         h_graph = self.pool(h_node, batched_data.batch).detach()
 
         if get_rep:
-            return self.conf_fw(h_graph), h_graph
-        return self.conf_fw(h_graph)
+            return self.spu_fw(h_graph), h_graph
+        return self.spu_fw(h_graph)
 
     def forward(self, batched_data, get_rep=False):
         h_node = self.gnn_node(batched_data)
@@ -149,8 +149,8 @@ class GNN(torch.nn.Module):
     def forward_cls(self, h_graph):
         return self.graph_pred_linear(h_graph)
 
-    def forward_conf_cls(self, h_graph):
-        return self.conf_fw(h_graph)
+    def forward_spu_cls(self, h_graph):
+        return self.spu_fw(h_graph)
 
     def forward_cl(self, batched_data):
         h_node = self.gnn_node(batched_data)
@@ -214,14 +214,14 @@ class LeGNN(torch.nn.Module):
         pred = self.causal_mlp(causal_graph_x)
         return pred
 
-    def get_conf_pred(self, conf_graph_x):
-        pred = self.conf_fw(conf_graph_x)
+    def get_spu_pred(self, spu_graph_x):
+        pred = self.spu_fw(spu_graph_x)
         return pred
 
-    def get_comb_pred(self, causal_graph_x, conf_graph_x):
+    def get_comb_pred(self, causal_graph_x, spu_graph_x):
         causal_pred = self.causal_mlp(causal_graph_x)
-        conf_pred = self.conf_mlp(conf_graph_x).detach()
-        return torch.sigmoid(conf_pred) * causal_pred
+        spu_pred = self.spu_mlp(spu_graph_x).detach()
+        return torch.sigmoid(spu_pred) * causal_pred
 
     def reset_parameters(self):
         with torch.no_grad():
