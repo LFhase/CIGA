@@ -90,12 +90,12 @@ scikit-image==0.19.1
 
 plus the [DrugOOD](https://github.com/tencent-ailab/DrugOOD) benchmark repo.
 
-The data used in the paper can be obtained following the [instructions](./dataset_gen/README.md).
+The data used in the paper can be obtained following these [instructions](./dataset_gen/README.md).
 
 ### Reproduce results
 We provide the hyperparamter tuning and evaluation details in the paper and appendix.
 In the below we give a brief introduction of the commands and their usage in our code. 
-We provide the corresponding running scripts in this [folder](./scripts/README.md).
+We provide the corresponding running scripts in the [script](./scripts/) folder.
 
 To obtain results of ERM, simply run 
 ```
