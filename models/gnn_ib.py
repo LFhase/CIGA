@@ -212,12 +212,12 @@ class GIB(nn.Module):
         causal_edge_index = torch.LongTensor([[], []]).to(device)
         causal_edge_weight = torch.tensor([]).to(device)
         causal_edge_attr = torch.tensor([]).to(device)
-        conf_edge_index = torch.LongTensor([[], []]).to(device)
-        conf_edge_weight = torch.tensor([]).to(device)
-        conf_edge_attr = torch.tensor([]).to(device)
+        spu_edge_index = torch.LongTensor([[], []]).to(device)
+        spu_edge_weight = torch.tensor([]).to(device)
+        spu_edge_attr = torch.tensor([]).to(device)
 
         causal_nodes = torch.LongTensor([]).to(device)
-        conf_nodes = torch.LongTensor([]).to(device)
+        spu_nodes = torch.LongTensor([]).to(device)
 
         edge_indices, _, _, num_edges, cum_edges = split_batch(data)
 
@@ -241,21 +241,21 @@ class GIB(nn.Module):
             s_edge, _ = subgraph(ind2orig[neg_ind], edge_index, relabel_nodes=False)
 
             causal_nodes = torch.cat([causal_nodes, ind2orig[pos_ind]])
-            conf_nodes = torch.cat([conf_nodes, ind2orig[neg_ind]])
+            spu_nodes = torch.cat([spu_nodes, ind2orig[neg_ind]])
             causal_edge_index = torch.cat([causal_edge_index, c_edge], dim=1)
-            conf_edge_index = torch.cat([conf_edge_index, s_edge], dim=1)
+            spu_edge_index = torch.cat([spu_edge_index, s_edge], dim=1)
 
             causal_edge_weight = torch.cat([causal_edge_weight, torch.ones(c_edge.size(1), 1).to(device)])
-            conf_edge_weight = torch.cat([conf_edge_weight, torch.ones(s_edge.size(1), 1).to(device)])
+            spu_edge_weight = torch.cat([spu_edge_weight, torch.ones(s_edge.size(1), 1).to(device)])
 
             causal_edge_attr = torch.cat([causal_edge_attr, data.edge_attr[ind2orig[pos_ind]]])
-            conf_edge_attr = torch.cat([conf_edge_attr, data.edge_attr[ind2orig[neg_ind]]])
+            spu_edge_attr = torch.cat([spu_edge_attr, data.edge_attr[ind2orig[neg_ind]]])
 
         causal_x, causal_edge_index, causal_batch, _ = relabel_nodes(x, causal_edge_index, causal_nodes, data.batch)
-        conf_x, conf_edge_index, conf_batch, _ = relabel_nodes(x, conf_edge_index, conf_nodes, data.batch)
+        spu_x, spu_edge_index, spu_batch, _ = relabel_nodes(x, spu_edge_index, spu_nodes, data.batch)
 
         return (causal_x, causal_edge_index, causal_edge_attr, causal_edge_weight, causal_batch),\
-                (conf_x, conf_edge_index, conf_edge_attr, conf_edge_weight, conf_batch), None
+                (spu_x, spu_edge_index, spu_edge_attr, spu_edge_weight, spu_batch), None
 
 
 class Discriminator(torch.nn.Module):

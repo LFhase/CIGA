@@ -97,7 +97,7 @@ class GNN(torch.nn.Module):
                                                 nn.Linear(2 * emb_dim, self.num_class))
             self.cq = nn.Linear(self.num_class, self.num_class)
             self.spu_fw = torch.nn.Sequential(self.spu_mlp, self.cq)
-        elif pred_head == "conf":
+        elif pred_head == "spu":
             self.graph_pred_linear = torch.nn.Sequential(nn.Linear(emb_dim, 2 * emb_dim), nn.ReLU(),
                                                          nn.Linear(2 * emb_dim, self.num_class))
             self.spu_gcn = GNN_node(num_layer=1,

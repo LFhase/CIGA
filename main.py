@@ -96,7 +96,7 @@ def eval_model(model, device, loader, evaluator, eval_metric='acc', save_pred=Fa
 def main():
     parser = argparse.ArgumentParser(description='Causality Inspired Invariant Graph LeArning')
     parser.add_argument('--device', default=0, type=int, help='cuda device')
-    parser.add_argument('--root', default='./data', type=str, help='directory for datasets.')
+    parser.add_argument('--root', default='../ginv/data', type=str, help='directory for datasets.')
     parser.add_argument('--dataset', default='drugood_lbap_core_ic50_assay', type=str)
     parser.add_argument('--bias', default='0.33', type=str, help='select bias extend')
     parser.add_argument('--feature', type=str, default="full", help='full feature or simple feature')

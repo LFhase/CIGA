@@ -211,7 +211,7 @@ class CIGA(nn.Module):
         self.c_pool = c_pool
 
         # predictor based on the decoupled subgraph
-        self.pred_head = "conf" if s_rep.lower() == "conv" else "inv"
+        self.pred_head = "spu" if s_rep.lower() == "conv" else "inv"
         self.c_dim = emb_dim if c_dim < 0 else c_dim
         self.c_in = c_in
         self.c_input_dim = input_dim if c_in.lower() == "raw" else emb_dim
@@ -355,8 +355,8 @@ class CIGA(nn.Module):
         clear_masks(self.classifier)
 
         env_loss = torch.tensor([]).to(causal_rep.device)
-        for conf in spu_rep:
-            rep_out = get_comb_pred(self.classifier, causal_rep, conf)
+        for spu in spu_rep:
+            rep_out = get_comb_pred(self.classifier, causal_rep, spu)
             env_loss = torch.cat([env_loss, criterion(rep_out[is_labeled], labels[is_labeled]).unsqueeze(0)])
 
         dir_loss = torch.var(env_loss * spu_rep.size(0)) + env_loss.mean()
