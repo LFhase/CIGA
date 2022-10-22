@@ -1,18 +1,19 @@
 
 <h1 align="center">Causality Inspired Invariant Graph LeArning (CIGA)</h1>
 <p align="center">
-    <a href="https://arxiv.org/abs/2202.05441"><img src="https://img.shields.io/badge/-Paper-grey?logo=gitbook&logoColor=white" alt="Paper"></a>
+    <a href="https://arxiv.org/abs/2202.05441"><img src="https://img.shields.io/badge/arXiv-2202.05441-b31b1b.svg" alt="Paper"></a>
     <a href="https://github.com/LFhase/CIGA"><img src="https://img.shields.io/badge/-Github-grey?logo=github" alt="Github"></a>
     <!-- <a href="https://colab.research.google.com/drive/1t0_4BxEJ0XncyYvn_VyEQhxwNMvtSUNx?usp=sharing"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Colab"></a> -->
     <a href="https://openreview.net/forum?id=A6AFK_JwrIW"> <img alt="License" src="https://img.shields.io/static/v1?label=Pub&message=NeurIPS%2722&color=blue"> </a>
-    <!-- <a href="https://github.com/Graph-COM/GSAT/blob/main/LICENSE"> <img alt="License" src="https://img.shields.io/github/license/Graph-Com/GSAT?color=blue"> </a>
-    <a href="https://icml.cc/virtual/2022/spotlight/17430"> <img src="https://img.shields.io/badge/Video-grey?logo=Kuaishou&logoColor=white" alt="Video"></a>
+    <a href="https://github.com/Graph-COM/GSAT/blob/main/LICENSE"> <img alt="License" src="https://img.shields.io/github/license/LFhase/CIGA?color=blue"> </a>
+    <!-- <a href="https://icml.cc/virtual/2022/spotlight/17430"> <img src="https://img.shields.io/badge/Video-grey?logo=Kuaishou&logoColor=white" alt="Video"></a>
     <a href="https://icml.cc/media/icml-2022/Slides/17430.pdf"> <img src="https://img.shields.io/badge/Slides-grey?&logo=MicrosoftPowerPoint&logoColor=white" alt="Slides"></a>
     <a href="https://icml.cc/media/PosterPDFs/ICML%202022/a8acc28734d4fe90ea24353d901ae678.png"> <img src="https://img.shields.io/badge/Poster-grey?logo=airplayvideo&logoColor=white" alt="Poster"></a> -->
 </p>
 
 
-This repo contains the sample code for reproducing the results of NeurIPS 2022 paper: *[Learning Causally Invariant Representations for Out-of-Distribution Generalization on Graphs](https://arxiv.org/abs/2202.05441)* 😆😆😆.
+This repo contains the sample code for reproducing the results of our NeurIPS 2022 paper: *[Learning Causally Invariant Representations for Out-of-Distribution Generalization on Graphs](https://arxiv.org/abs/2202.05441)*, which was also presented at [ICML SCIS](https://sites.google.com/view/scis-workshop/home) Workshop, known as
+*[Invariance Principle Meets Out-of-Distribution Generalization on Graphs]*(https://lfhase.win/files/papers/GOOD.pdf). 😆😆😆
 
 TODO items:
 
@@ -149,4 +150,4 @@ If you find our paper and repo useful, please cite our paper:
   year        = {2022}
 }
 ```
-Ack: The readme is inspired by [GSAT](https://github.com/Graph-COM/GSAT) 😄.
+Ack: The readme is inspired by [GSAT](https://github.com/Graph-COM/GSAT). 😄
