@@ -1,14 +1,14 @@
 
-<h1 align="center">Causality Inspired Invariant Graph LeArning (CIGA)</h1>
+<h1 align="center">CIGA: Causality Inspired Invariant Graph LeArning</h1>
 <p align="center">
     <a href="https://arxiv.org/abs/2202.05441"><img src="https://img.shields.io/badge/arXiv-2202.05441-b31b1b.svg" alt="Paper"></a>
     <a href="https://github.com/LFhase/CIGA"><img src="https://img.shields.io/badge/-Github-grey?logo=github" alt="Github"></a>
     <!-- <a href="https://colab.research.google.com/drive/1t0_4BxEJ0XncyYvn_VyEQhxwNMvtSUNx?usp=sharing"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Colab"></a> -->
     <a href="https://openreview.net/forum?id=A6AFK_JwrIW"> <img alt="License" src="https://img.shields.io/static/v1?label=Pub&message=NeurIPS%2722&color=blue"> </a>
     <a href="https://github.com/LFhase/CIGA/blob/main/LICENSE"> <img alt="License" src="https://img.shields.io/github/license/LFhase/CIGA?color=blue"> </a>
-    <!-- <a href="https://icml.cc/virtual/2022/spotlight/17430"> <img src="https://img.shields.io/badge/Video-grey?logo=Kuaishou&logoColor=white" alt="Video"></a>
-    <a href="https://icml.cc/media/icml-2022/Slides/17430.pdf"> <img src="https://img.shields.io/badge/Slides-grey?&logo=MicrosoftPowerPoint&logoColor=white" alt="Slides"></a>
-    <a href="https://icml.cc/media/PosterPDFs/ICML%202022/a8acc28734d4fe90ea24353d901ae678.png"> <img src="https://img.shields.io/badge/Poster-grey?logo=airplayvideo&logoColor=white" alt="Poster"></a> -->
+    <!-- <a href="https://icml.cc/virtual/2022/spotlight/17430"> <img src="https://img.shields.io/badge/Video-grey?logo=Kuaishou&logoColor=white" alt="Video"></a> -->
+    <a href="https://lfhase.win/files/slides/CIGA.pdf"> <img src="https://img.shields.io/badge/Slides-grey?&logo=MicrosoftPowerPoint&logoColor=white" alt="Slides"></a>
+   <!--  <a href="https://icml.cc/media/PosterPDFs/ICML%202022/a8acc28734d4fe90ea24353d901ae678.png"> <img src="https://img.shields.io/badge/Poster-grey?logo=airplayvideo&logoColor=white" alt="Poster"></a> -->
 </p>
 
 
@@ -18,8 +18,9 @@ This repo contains the sample code for reproducing the results of our NeurIPS 20
 TODO items:
 
 - [x] Camera ready version of the paper is released on Oct. 12 ([link](https://arxiv.org/abs/2202.05441))!
-- [ ] Full code and instructions will be released soon!
+- [x] Full code and instructions will be released soon!
 - [ ] Benchmarking CIGA on [GOOD](https://github.com/divelab/GOOD) benchamrk, which is recently accepted by NeurIPS 2022 Datasets and Benchmarks Track!
+    - A initial implementation is provided [here](https://github.com/LFhase/GOOD). Now working on benchmarking and making possible adjustments.
 
 ## Introduction
 Despite recent success in using the invariance principle for out-of-distribution (OOD) generalization on Euclidean data (e.g., images), studies on graph data are still limited. Different from images, the complex nature of graphs poses unique challenges to adopting the invariance principle:
