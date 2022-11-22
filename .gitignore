@@ -24,3 +24,5 @@ data/*
 *.pdf
 *.png
 *.json
+
+.idea/
