@@ -48,18 +48,19 @@ Learning with these subgraphs is immune to distribution shifts.
 We implement CIGA using the interpretable GNN architecture, where the featurizer $g$ is designed to extract the invariant subgraph, and a classifier $f_c$ is designed to classify the extracted subgraph.
 The objective is imposed as an additional contrastive penalty to enforce the invariance of the extracted subgraphs at a latent sphere space (CIGAv1).
 
-1. When the size of underlying $G_c$ is known and fixed across different graphs and environments, CIGAv1 is able to identify $G_c$. 
+1. When the size of underlying invariant subgraph $G_c$ is known and fixed across different graphs and environments, CIGAv1 is able to identify $G_c$. 
 2. While it is often the case that the underlying $G_c$ varies, we further incorporate an additional penalty that maximizes $I(G_s;Y)$ to absorb potential spurious parts in the estimated $G_c$ (CIGAv2).
 
 Extensive experiments on $16$ synthetic or real-world datasets, including a challenging setting -- DrugOOD, from AI-aided drug discovery, validate the superior OOD generalization ability of CIGA.
 
 ## Use CIGA in Your Code
+
 CIGA is consist of two key regularization terms: one is the contrastive loss that maximizes $I(\widehat{G}_c;\widetilde{G}_c|Y)$;
 the other is the hinge loss that maximizes $I(\widehat{G}_s;Y)$.
 
 The contrastive loss is implemented via a simple call (line 480 in `main.py`):
 ```python
-get_contrast_loss(causal_rep,label)
+get_contrast_loss(causal_rep, label)
 ```
 which requires two key inputs:
 - `causal_rep`: the representations of the invariant subgraph representations;
@@ -121,16 +122,16 @@ Running with the baselines:
 use `--irm_opt` to be `irm`, `vrex`, `eiil` or `ib-irm` to specify the methods,
 and `--irm_p` to specify the penalty weights.
 
-Due to the additional dependence of a ERM reference model in CNC, we need to train a ERM model and save it first,
-and then load the model to generate ERM predictions for postive/negative pairs sampling in CNC. 
-Here is an simplistic example:
+Due to the additional dependence of an ERM reference model in CNC, we need to train an ERM model and save it first,
+and then load the model to generate ERM predictions for positive/negative pairs sampling in CNC. 
+Here is a simplistic example:
 ```
 python main.py --erm --contrast 0 --save_model
 python main.py --erm --contrast 1  -c_sam 'cnc'
 ```
 
 ## Misc
-As discussed in the paper that the current code is merely a prototypical implementation based on a interpretable GNN architecture, i.e., [GAE](https://arxiv.org/abs/1611.07308), in fact there could be more implementation choices:
+As discussed in the paper that the current code is merely a prototypical implementation based on an interpretable GNN architecture, i.e., [GAE](https://arxiv.org/abs/1611.07308), in fact there could be more implementation choices:
 - For the architectures: CIGA can also be implemented via [GIB](https://github.com/Samyu0304/Improving-Subgraph-Recognition-with-Variation-Graph-Information-Bottleneck-VGIB-) and [GSAT](https://github.com/Graph-COM/GSAT). 
 - For the hyperparameter tunning: You may find plentiful literature from [multi-task learning](https://github.com/median-research-group/LibMTL), or try out [PAIR](https://arxiv.org/abs/2206.07766).
 - Besides, CIGA is also compatible with state-of-the-art contrastive augmentations for graph learning, which you may find useful information from [PyGCL](https://github.com/PyGCL/PyGCL).
@@ -138,7 +139,7 @@ As discussed in the paper that the current code is merely a prototypical impleme
 You can also find more discussions on the limitations and future works in Appendix B of our paper.
 
 That being said, CIGA is definitely not the ultimate solution and it intrinsically has many limitations. 
-Nevertheless, we hope the causal analysis and the inspired solution in CIGA could serve as a initial step towards more reliable graph learning algorithms that are able to generalize various OOD graphs from the real world.
+Nevertheless, we hope the causal analysis and the inspired solution in CIGA could serve as an initial step towards more reliable graph learning algorithms that are able to generalize various OOD graphs from the real world.
 
 
 If you find our paper and repo useful, please cite our paper:
@@ -151,4 +152,5 @@ If you find our paper and repo useful, please cite our paper:
   year        = {2022}
 }
 ```
+
 Ack: The readme is inspired by [GSAT](https://github.com/Graph-COM/GSAT). 😄
