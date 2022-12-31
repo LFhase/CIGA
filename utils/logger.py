@@ -23,18 +23,18 @@ class Logger:
         
         if os.path.exists(filename):
             os.remove(filename)
-        if filename:
-            # file handler
-            fh = logging.FileHandler(filename)
-            fh.setLevel(level)
-            fh.setFormatter(fmt)
-            logger.addHandler(fh)
-        else:
-            # stream handler
-            sh = logging.StreamHandler(sys.stdout)
-            sh.setLevel(level)
-            sh.setFormatter(fmt)
-            logger.addHandler(sh)
+
+        # file handler
+        fh = logging.FileHandler(filename)
+        fh.setLevel(level)
+        fh.setFormatter(fmt)
+        logger.addHandler(fh)
+
+        # stream handler
+        sh = logging.StreamHandler(sys.stdout)
+        sh.setLevel(level)
+        sh.setFormatter(fmt)
+        logger.addHandler(sh)
         logger.setLevel(level)
         Logger.logger = logger
         return logger
