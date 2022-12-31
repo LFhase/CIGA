@@ -21,6 +21,7 @@ TODO items:
 - [x] Full code and instructions will be released soon!
 - [ ] Benchmarking CIGA on [GOOD](https://github.com/divelab/GOOD) benchamrk, which is recently accepted by NeurIPS 2022 Datasets and Benchmarks Track!
     - A initial implementation is provided [here](https://github.com/LFhase/GOOD). Now working on benchmarking and making possible adjustments.
+- [x] Released a [introductory blog](https://mp.weixin.qq.com/s/_CbZ-hOVTfmhBXlUd6kzgg) in Chinese. Check it out!
 
 ## Introduction
 Despite recent success in using the invariance principle for out-of-distribution (OOD) generalization on Euclidean data (e.g., images), studies on graph data are still limited. Different from images, the complex nature of graphs poses unique challenges to adopting the invariance principle:
