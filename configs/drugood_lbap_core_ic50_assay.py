@@ -3,11 +3,11 @@ _base_ = ['./_base_/schedules/classification.py', './_base_/default_runtime.py']
 # transform
 train_pipeline = [
     dict(type="SmileToGraph", keys=["input"]),
-    dict(type='Collect', keys=['input', 'gt_label', 'group', 'assay_type'])
+    dict(type='Collect', keys=['input', 'gt_label', 'group'])
 ]
 test_pipeline = [
     dict(type="SmileToGraph", keys=["input"]),
-    dict(type='Collect', keys=['input', 'gt_label', 'group', 'assay_type'])
+    dict(type='Collect', keys=['input', 'gt_label', 'group'])
 ]
 
 # dataset

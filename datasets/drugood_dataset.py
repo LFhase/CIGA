@@ -27,7 +27,6 @@ class DrugOOD(InMemoryDataset):
                 graph = data['input']
                 y = data['gt_label']
                 group = data['group']
-                assay_type = data['assay_type']
 
                 edge_index = graph.edges()
                 edge_attr = graph.edata['x']  #.long()
@@ -36,8 +35,7 @@ class DrugOOD(InMemoryDataset):
                                 edge_attr=edge_attr,
                                 x=node_attr,
                                 y=y,
-                                group=group,
-                                assay_type=assay_type)
+                                group=group)
                 data_list.append(new_data)
             torch.save(self.collate(data_list), data_path)
 
