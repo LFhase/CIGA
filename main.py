@@ -107,7 +107,7 @@ def main():
     parser.add_argument('--lr', default=1e-3, type=float, help='learning rate for the predictor')
     parser.add_argument('--seed', nargs='?', default='[1,2,3,4,5]', help='random seed')
     parser.add_argument('--pretrain', default=20, type=int, help='pretrain epoch before early stopping')
-    
+
     # model config
     parser.add_argument('--emb_dim', default=32, type=int)
     parser.add_argument('--r', default=0.25, type=float, help='selected ratio')
@@ -133,7 +133,7 @@ def main():
     parser.add_argument('--num_envs', default=1, type=int, help='num of envs need to be partitioned')
     parser.add_argument('--irm_p', default=1, type=float, help='penalty weight')
     parser.add_argument('--irm_opt', default='irm', type=str, help='algorithms to use')
-   
+
 
     # Invariant Graph Learning config
     parser.add_argument('--erm', action='store_true')  # whether to use normal GNN arch
@@ -141,7 +141,7 @@ def main():
     parser.add_argument('--dir', default=0, type=float)
     parser.add_argument('--contrast_t', default=1.0, type=float, help='temperature prameter in contrast loss')
     # strength of the contrastive reg, \alpha in the paper
-    parser.add_argument('--contrast', default=0, type=float)    
+    parser.add_argument('--contrast', default=4, type=float)
     parser.add_argument('--not_norm', action='store_true')  # whether not using normalization for the constrast loss
     parser.add_argument('-c_sam', '--contrast_sampling', default='mul', type=str)
     # contrasting summary from the classifier or featurizer
@@ -158,7 +158,7 @@ def main():
     # conv: featurizer rep + 1L GNNConv
     parser.add_argument('-s_rep', '--spurious_rep', default='rep', type=str)
     # strength of the hinge reg, \beta in the paper
-    parser.add_argument('--spu_coe', default=0, type=float) 
+    parser.add_argument('--spu_coe', default=0, type=float)
 
     # misc
     parser.add_argument('--no_tqdm', action='store_true')
@@ -177,13 +177,14 @@ def main():
 
     criterion = ce_loss
     eval_metric = 'acc' if len(args.eval_metric) == 0 else args.eval_metric
-    edge_dim = -1
+    edge_dim = -1.
+
     ### automatic dataloading and splitting
     if args.dataset.lower().startswith('drugood'):
-        #drugood_lbap_core_ic50_assay.json
+        # drugood_lbap_core_ic50_assay.json
         config_path = os.path.join("configs", args.dataset + ".py")
         cfg = Config.fromfile(config_path)
-        root = os.path.join(args.root,"DrugOOD")
+        root = os.path.join(args.root, "DrugOOD")
         train_dataset = DrugOOD(root=root, dataset=build_dataset(cfg.data.train), name=args.dataset, mode="train")
         val_dataset = DrugOOD(root=root, dataset=build_dataset(cfg.data.ood_val), name=args.dataset, mode="ood_val")
         test_dataset = DrugOOD(root=root, dataset=build_dataset(cfg.data.ood_test), name=args.dataset, mode="ood_test")
@@ -307,7 +308,6 @@ def main():
         input_dim = dataset[0].x.size(1)
         num_classes = dataset.num_classes
         evaluator = Evaluator('ogbg-ppa')
-
     else:
         raise Exception("Invalid dataset name")
 
@@ -319,6 +319,7 @@ def main():
         'val_acc': [],
     }
     experiment_name = f'{args.dataset}-{args.bias}_{args.ginv_opt}_erm{args.erm}_dir{args.dir}_coes{args.contrast}-{args.spu_coe}_seed{args.seed}_{datetime_now}'
+    experiment_name = f'{datetime_now[4::]}'
     exp_dir = os.path.join('./logs/', experiment_name)
     os.mkdir(exp_dir)
     logger = Logger.init_logger(filename=exp_dir + '/log.log')
@@ -327,6 +328,7 @@ def main():
 
     logger.info(f"# Train: {len(train_loader.dataset)}  #Val: {len(valid_loader.dataset)} #Test: {len(test_loader.dataset)} ")
     best_weights = None
+
     for seed in args.seed:
         set_seed(seed)
         # models and optimizers
@@ -389,7 +391,7 @@ def main():
         # generate environment partitions
         if args.num_envs > 1:
             env_idx = (torch.sigmoid(torch.randn(len(train_loader.dataset))) > 0.5).long()
-            print(f"num env 0: {sum(env_idx==0)} num env 1: {sum(env_idx==1)}")
+            print(f"num env 0: {sum(env_idx == 0)} num env 1: {sum(env_idx == 1)}")
 
         for epoch in range(args.epoch):
             # for epoch in tqdm(range(args.epoch)):
@@ -401,7 +403,7 @@ def main():
             torch.autograd.set_detect_anomaly(True)
             num_batch = (len(train_loader.dataset) // args.batch_size) + int(
                 (len(train_loader.dataset) % args.batch_size) > 0)
-            for step, graph in tqdm(enumerate(train_loader), total=num_batch, desc=" Training", disable=args.no_tqdm):
+            for step, graph in tqdm(enumerate(train_loader), total=num_batch, desc=f"Epoch [{epoch}] >>  ", disable=args.no_tqdm, ncols=60):
                 n_bw += 1
                 graph.to(device)
                 # ignore nan targets
@@ -411,13 +413,13 @@ def main():
                 if args.dir > 0:
                     # obtain dir losses
                     dir_loss, causal_pred, spu_pred, causal_rep = model.get_dir_loss(graph,
-                                                                                      graph.y,
-                                                                                      criterion,
-                                                                                      is_labeled=is_labeled,
-                                                                                      return_data='rep')
+                                                                                     graph.y,
+                                                                                     criterion,
+                                                                                     is_labeled=is_labeled,
+                                                                                     return_data='rep')
                     spu_loss = criterion(spu_pred[is_labeled], graph.y[is_labeled])
                     pred_loss = criterion(causal_pred[is_labeled], graph.y[is_labeled])
-                    pred_loss = pred_loss + spu_loss + args.dir * (epoch**1.6) * dir_loss
+                    pred_loss = pred_loss + spu_loss + args.dir * (epoch ** 1.6) * dir_loss
                     all_losses['cls'] = (all_losses.get('cls', 0) * (n_bw - 1) + pred_loss.item()) / n_bw
                     all_losses['dir'] = (all_losses.get('dir', 0) * (n_bw - 1) + dir_loss.item()) / n_bw
                     all_losses['spu'] = (all_losses.get('spu', 0) * (n_bw - 1) + spu_loss.item()) / n_bw
@@ -502,11 +504,11 @@ def main():
                             # penalty for env a
                             lossa = (loss.squeeze() * env_w.sigmoid()).mean()
                             grada = torch.autograd.grad(lossa, [dummy_w], create_graph=True)[0]
-                            penaltya = torch.sum(grada**2)
+                            penaltya = torch.sum(grada ** 2)
                             # penalty for env b
                             lossb = (loss.squeeze() * (1 - env_w.sigmoid())).mean()
                             gradb = torch.autograd.grad(lossb, [dummy_w], create_graph=True)[0]
-                            penaltyb = torch.sum(gradb**2)
+                            penaltyb = torch.sum(gradb ** 2)
                             # negate
                             npenalty = -torch.stack([penaltya, penaltyb]).mean()
                             # step
@@ -515,7 +517,7 @@ def main():
                             optimizer.step()
                         new_batch_env_idx = (env_w.sigmoid() > 0.5).long()
                         env_idx[step * args.batch_size:step * args.batch_size +
-                                graph.y.size(0)][labels] = new_batch_env_idx.to(env_idx.device)
+                                                       graph.y.size(0)][labels] = new_batch_env_idx.to(env_idx.device)
                         irm_loss = get_irm_loss(causal_pred, labels, new_batch_env_idx, criterion=criterion)
                     elif args.irm_opt.lower() == 'ib-irm':
                         ib_penalty = causal_rep.var(dim=0).mean()
@@ -530,6 +532,7 @@ def main():
                         irm_loss = get_irm_loss(causal_pred, labels, batch_env_idx, criterion=criterion)
                     all_losses['irm'] = (all_losses.get('irm', 0) * (n_bw - 1) + irm_loss.item()) / n_bw
                     pred_loss += irm_loss * args.irm_p
+
                 # compile losses
                 batch_loss = pred_loss + contrast_coe * contrast_loss + args.spu_coe * spu_pred_loss
                 model_optimizer.zero_grad()
@@ -562,26 +565,31 @@ def main():
                     best_weights = deepcopy(model.state_dict())
             if epoch >= args.pretrain and cnt >= args.early_stopping:
                 logger.info("Early Stopping")
-                logger.info("+" * 101)
+                logger.info("+" * 50)
                 logger.info("Last: Test_ACC: {:.3f} Train_ACC:{:.3f} Val_ACC:{:.3f} ".format(
                     last_test_acc, last_train_acc, last_val_acc))
                 break
-            logger.info("Epoch [{:3d}/{:d}]  all_losses:{}  \n"
-                        "Test_ACC:{:.3f}  Train_ACC:{:.3f} Val_ACC:{:.3f}".format(
-                            epoch, args.epoch, all_losses, test_acc, train_acc, val_acc))
 
-        all_info['test_acc'].append(last_test_acc)
-        all_info['train_acc'].append(last_train_acc)
-        all_info['val_acc'].append(last_val_acc)
-        logger.info("=" * 101)
+            all_info['test_acc'].append(last_test_acc)
+            all_info['train_acc'].append(last_train_acc)
+            all_info['val_acc'].append(last_val_acc)
 
-    logger.info("Test ACC:{:.4f}-+-{:.4f}  Train ACC:{:.4f}-+-{:.4f} Val ACC:{:.4f}-+-{:.4f} ".format(
-                    torch.tensor(all_info['test_acc']).mean(),
-                    torch.tensor(all_info['test_acc']).std(),
-                    torch.tensor(all_info['train_acc']).mean(),
-                    torch.tensor(all_info['train_acc']).std(),
-                    torch.tensor(all_info['val_acc']).mean(),
-                    torch.tensor(all_info['val_acc']).std()))
+            print("      [{:3d}/{:d}]".format(epoch, args.epoch) +
+                        "\n       train_ACC: {:.4f} / {:.4f}"
+                        "\n       valid_ACC: {:.4f} / {:.4f}"
+                        "\n       tests_ACC: {:.4f} / {:.4f}\n".format(
+                            train_acc, torch.tensor(all_info['train_acc']).max(),
+                            test_acc, torch.tensor(all_info['test_acc']).max(),
+                            val_acc, torch.tensor(all_info['val_acc']).max()))
+        logger.info("=" * 50)
+
+    print("Test ACC:{:.4f}-+-{:.4f}\nTrain ACC:{:.4f}-+-{:.4f}\nVal ACC:{:.4f}-+-{:.4f} ".format(
+        torch.tensor(all_info['test_acc']).mean(),
+        torch.tensor(all_info['test_acc']).std(),
+        torch.tensor(all_info['train_acc']).mean(),
+        torch.tensor(all_info['train_acc']).std(),
+        torch.tensor(all_info['val_acc']).mean(),
+        torch.tensor(all_info['val_acc']).std()))
 
     if args.save_model:
         print("Saving best weights..")
@@ -590,6 +598,8 @@ def main():
             best_weights[k] = v.cpu()
         torch.save(best_weights, model_path)
         print("Done..")
+
+    print("\n\n\n")
     torch.cuda.empty_cache()
 
 
