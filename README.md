@@ -22,6 +22,7 @@ TODO items:
 - [ ] Benchmarking CIGA on [GOOD](https://github.com/divelab/GOOD) benchamrk, which is recently accepted by NeurIPS 2022 Datasets and Benchmarks Track!
     - A initial implementation is provided [here](https://github.com/LFhase/GOOD). Now working on benchmarking and making possible adjustments.
 - [x] Released a [introductory blog](https://mp.weixin.qq.com/s/_CbZ-hOVTfmhBXlUd6kzgg) in Chinese. Check it out!
+- [x] 2023 Jan. 4: Done the benchmarking under `GOODMotif`, `GOODCMNIST`, `GOODSST2`, `GOODHIV` ([overview](https://github.com/LFhase/GOOD/blob/GOODv1/results/CIGA-GOOD-results_230104.pdf),[full results](https://docs.google.com/spreadsheets/d/1_v38zrC6d4pq6Xq4DL9z1eYQb6SCFmU4m-jAewXK_9I/edit?usp=sharing),[details](https://github.com/LFhase/GOOD))! CIGA is the SOTA Graph OOD algorithm under all benchmarked datasets! 🔥🔥🔥
 
 ## Introduction
 Despite recent success in using the invariance principle for out-of-distribution (OOD) generalization on Euclidean data (e.g., images), studies on graph data are still limited. Different from images, the complex nature of graphs poses unique challenges to adopting the invariance principle:
