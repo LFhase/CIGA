@@ -236,6 +236,51 @@ class CIGA(nn.Module):
 
 
 
+    def split_graph(self,data, edge_score, ratio):
+        # Adopt from GOOD benchmark to improve the efficiency
+        from torch_geometric.utils import degree
+        def sparse_sort(src: torch.Tensor, index: torch.Tensor, dim=0, descending=False, eps=1e-12):
+            r'''
+            Adopt from <https://github.com/rusty1s/pytorch_scatter/issues/48>_.
+            '''
+            f_src = src.float()
+            f_min, f_max = f_src.min(dim)[0], f_src.max(dim)[0]
+            norm = (f_src - f_min) / (f_max - f_min + eps) + index.float() * (-1) ** int(descending)
+            perm = norm.argsort(dim=dim, descending=descending)
+
+            return src[perm], perm
+
+        def sparse_topk(src: torch.Tensor, index: torch.Tensor, ratio: float, dim=0, descending=False, eps=1e-12):
+            rank, perm = sparse_sort(src, index, dim, descending, eps)
+            num_nodes = degree(index, dtype=torch.long)
+            k = (ratio * num_nodes.to(float)).ceil().to(torch.long)
+            start_indices = torch.cat([torch.zeros((1, ), device=src.device, dtype=torch.long), num_nodes.cumsum(0)])
+            mask = [torch.arange(k[i], dtype=torch.long, device=src.device) + start_indices[i] for i in range(len(num_nodes))]
+            mask = torch.cat(mask, dim=0)
+            mask = torch.zeros_like(index, device=index.device).index_fill(0, mask, 1).bool()
+            topk_perm = perm[mask]
+            exc_perm = perm[~mask]
+
+            return topk_perm, exc_perm, rank, perm, mask
+
+        has_edge_attr = hasattr(data, 'edge_attr') and getattr(data, 'edge_attr') is not None
+        new_idx_reserve, new_idx_drop, _, _, _ = sparse_topk(edge_score, data.batch[data.edge_index[0]], ratio, descending=True)
+        new_causal_edge_index = data.edge_index[:, new_idx_reserve]
+        new_spu_edge_index = data.edge_index[:, new_idx_drop]
+
+        new_causal_edge_weight = edge_score[new_idx_reserve]
+        new_spu_edge_weight = -edge_score[new_idx_drop]
+
+        if has_edge_attr:
+            new_causal_edge_attr = data.edge_attr[new_idx_reserve]
+            new_spu_edge_attr = data.edge_attr[new_idx_drop]
+        else:
+            new_causal_edge_attr = None
+            new_spu_edge_attr = None
+
+        return (new_causal_edge_index, new_causal_edge_attr, new_causal_edge_weight), \
+            (new_spu_edge_index, new_spu_edge_attr, new_spu_edge_weight)
+
     def forward(self, batch, return_data="pred", return_spu=False, debug=False):
         # obtain the graph embeddings from the featurizer GNN encoder
         h = self.gnn_encoder(batch)
@@ -247,35 +292,14 @@ class CIGA(nn.Module):
             batch.edge_attr = torch.ones(row.size(0)).to(device)
         edge_rep = torch.cat([h[row], h[col]], dim=-1)
         pred_edge_weight = self.edge_att(edge_rep).view(-1)
+        if self.ratio<0:
+            (causal_edge_index, causal_edge_attr, causal_edge_weight), \
+                (spu_edge_index, spu_edge_attr, spu_edge_weight) = (batch.edge_index, batch.edge_attr, pred_edge_weight), \
+                (batch.edge_index, batch.edge_attr, pred_edge_weight)
+        else:
+            (causal_edge_index, causal_edge_attr, causal_edge_weight), \
+                (spu_edge_index, spu_edge_attr, spu_edge_weight) = self.split_graph(batch, pred_edge_weight, self.ratio)
 
-        causal_edge_index = torch.LongTensor([[], []]).to(device)
-        causal_edge_weight = torch.tensor([]).to(device)
-        causal_edge_attr = torch.tensor([]).to(device)
-        spu_edge_index = torch.LongTensor([[], []]).to(device)
-        spu_edge_weight = torch.tensor([]).to(device)
-        spu_edge_attr = torch.tensor([]).to(device)
-
-        edge_indices, _, _, num_edges, cum_edges = split_batch(batch)
-        for edge_index, N, C in zip(edge_indices, num_edges, cum_edges):
-            n_reserve = int(self.ratio * N)
-
-            edge_attr = batch.edge_attr[C:C + N]
-            single_mask = pred_edge_weight[C:C + N]
-            single_mask_detach = pred_edge_weight[C:C + N].detach().cpu().numpy()
-            rank = np.argpartition(-single_mask_detach, n_reserve)
-            idx_reserve, idx_drop = rank[:n_reserve], rank[n_reserve:]
-            if debug:
-                print(n_reserve)
-                print(idx_reserve)
-                print(idx_drop)
-            causal_edge_index = torch.cat([causal_edge_index, edge_index[:, idx_reserve]], dim=1)
-            spu_edge_index = torch.cat([spu_edge_index, edge_index[:, idx_drop]], dim=1)
-
-            causal_edge_weight = torch.cat([causal_edge_weight, single_mask[idx_reserve]])
-            spu_edge_weight = torch.cat([spu_edge_weight, -1 * single_mask[idx_drop]])
-
-            causal_edge_attr = torch.cat([causal_edge_attr, edge_attr[idx_reserve]])
-            spu_edge_attr = torch.cat([spu_edge_attr, edge_attr[idx_drop]])
 
         if self.c_in.lower() == "raw":
             causal_x, causal_edge_index, causal_batch, _ = relabel(batch.x, causal_edge_index, batch.batch)
