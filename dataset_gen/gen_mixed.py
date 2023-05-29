@@ -276,11 +276,11 @@ for _ in tqdm(range(num_train_perc)):
     pos_list.append(pos)
 print(np.mean(n_mean), np.mean(e_mean))
 print(len(ground_truth_list))
-if not os.path.exists(f'../data/SPMotif-{global_b}/'):
-    os.mkdir(f'../data/SPMotif-{global_b}/')
-if not os.path.exists(f'../data/SPMotif-{global_b}/raw'):
-    os.mkdir(f'../data/SPMotif-{global_b}/raw')
-np.save(f'../data/SPMotif-{global_b}/raw/train.npy',
+if not os.path.exists(f'../data/mSPMotif-{global_b}/'):
+    os.mkdir(f'../data/mSPMotif-{global_b}/')
+if not os.path.exists(f'../data/mSPMotif-{global_b}/raw'):
+    os.mkdir(f'../data/mSPMotif-{global_b}/raw')
+np.save(f'../data/mSPMotif-{global_b}/raw/train.npy',
         (edge_index_list, label_list, ground_truth_list, role_id_list, pos_list))
 
 import random
@@ -401,7 +401,7 @@ for _ in tqdm(range(num_val_perc)):
     pos_list.append(pos)
 print(np.mean(n_mean), np.mean(e_mean))
 print(len(ground_truth_list))
-np.save(f'../data/SPMotif-{global_b}/raw/val.npy',
+np.save(f'../data/mSPMotif-{global_b}/raw/val.npy',
         (edge_index_list, label_list, ground_truth_list, role_id_list, pos_list))
 
 import random
